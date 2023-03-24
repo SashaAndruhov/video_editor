@@ -57,7 +57,7 @@ mixin CropPreviewMixin<T extends StatefulWidget> on State<T> {
     bool showGrid = false,
   }) {
     return SizedBox.fromSize(
-      size: layout,
+      // size: layout,
       child: CropTransformWithAnimation(
         shouldAnimate: layout != Size.zero,
         transform: transform,
@@ -112,6 +112,8 @@ mixin CropPreviewMixin<T extends StatefulWidget> on State<T> {
           painter: CropGridPainter(
             value,
             style: controller.cropStyle,
+            radius:
+                !showGrid ? controller.cropStyle.previewVideoBorderRadius : 0,
             boundary: boundary,
             showGrid: showGrid,
             showCenterRects: showCenterRects,

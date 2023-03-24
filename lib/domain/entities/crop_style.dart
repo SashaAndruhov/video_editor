@@ -13,6 +13,7 @@ class CropGridStyle {
     this.selectedBoundariesColor = kDefaultSelectedColor,
     this.boundariesLength = 20,
     this.boundariesWidth = 5,
+    this.previewVideoBorderRadius = 0,
   });
 
   /// The [croppingBackground] param specifies the color of the paint area outside the crop area when copping
@@ -60,4 +61,9 @@ class CropGridStyle {
   ///
   /// Defaults to `5`
   final double boundariesWidth;
+
+  /// The [previewVideoBorderRadius] param specifies the preview video border radius
+  ///
+  /// Defaults to `0`
+  final double previewVideoBorderRadius;
 }

@@ -629,18 +629,56 @@ class _TrimSliderState extends State<TrimSlider>
                   widget.controller.video,
                 ]),
                 builder: (_, __) {
-                  return RepaintBoundary(
-                    child: CustomPaint(
+                  if(widget.controller.trimStyle.leftEdge!=null ||widget.controller.trimStyle.rightEdge!=null){
+                    return SizedBox.fromSize(
                       size: Size.fromHeight(widget.height),
-                      painter: TrimSliderPainter(
-                        _rect,
-                        _getVideoPosition(),
-                        widget.controller.trimStyle,
-                        isTrimming: widget.controller.isTrimming,
-                        isTrimmed: widget.controller.isTrimmed,
+                      child: Stack(
+                        fit: StackFit.loose,
+                        children: [
+                          RepaintBoundary(
+                            child: CustomPaint(
+                              size: Size.fromHeight(widget.height),
+                              painter: TrimSliderPainter(
+                                _rect,
+                                _getVideoPosition(),
+                                widget.controller.trimStyle,
+                                isTrimming: widget.controller.isTrimming,
+                                isTrimmed: widget.controller.isTrimmed,
+                              ),
+                            ),
+                          ),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Container(
+                              margin: EdgeInsets.only(left: _rect.left-6),
+                              child: widget.controller.trimStyle.leftEdge??widget.controller.trimStyle.rightEdge,
+                            ),
+                          ),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: Container(
+                              margin: EdgeInsets.only(right: contrainst.maxWidth-_rect.right-6),
+                              child: widget.controller.trimStyle.rightEdge??widget.controller.trimStyle.leftEdge!,
+                            ),
+                          )
+
+                        ],
                       ),
-                    ),
-                  );
+                    );
+                  }else{
+                    return RepaintBoundary(
+                      child: CustomPaint(
+                        size: Size.fromHeight(widget.height),
+                        painter: TrimSliderPainter(
+                          _rect,
+                          _getVideoPosition(),
+                          widget.controller.trimStyle,
+                          isTrimming: widget.controller.isTrimming,
+                          isTrimmed: widget.controller.isTrimmed,
+                        ),
+                      ),
+                    );
+                  }
                 },
               ),
             )

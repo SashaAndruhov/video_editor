@@ -19,10 +19,15 @@ class TrimSliderStyle {
     double? edgesSize,
     // icons
     this.iconColor = Colors.black,
-    this.iconSize = 16,
+    double iconSize = 16,
     this.leftIcon = Icons.arrow_back_ios_rounded,
     this.rightIcon = Icons.arrow_forward_ios_rounded,
-  }) : edgesSize = edgesSize ?? (edgesType == TrimSliderEdgesType.bar ? 10 : 8);
+    this.leftEdge,
+    this.rightEdge,
+  })  : edgesSize = (leftEdge != null || rightEdge != null)
+            ? 0
+            : edgesSize ?? (edgesType == TrimSliderEdgesType.bar ? 10 : 8),
+        iconSize = (leftEdge != null || rightEdge != null) ? 0 : iconSize;
 
   /// The [background] param specifies the color of the paint area outside the trimmed area
   ///
@@ -94,6 +99,16 @@ class TrimSliderStyle {
   ///
   /// Defaults to [Icons.arrow_forward_ios_rounded]
   final IconData? rightIcon;
+
+  /// The [leftEdge] param specifies the left edge of the trimmed area
+  ///
+  /// Defaults to null
+  final Widget? leftEdge;
+
+  /// The [rightIcon] param specifies the right edge of the trimmed area
+  ///
+  /// Defaults to null
+  final Widget? rightEdge;
 
   /// Returns left and right line width depending on [edgesType]
   double get edgeWidth =>
