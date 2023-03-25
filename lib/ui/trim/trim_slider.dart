@@ -197,12 +197,18 @@ class _TrimSliderState extends State<TrimSlider>
   /// Scroll to update [_rect] and trim values on scroll
   /// Will fix [_rect] to the scroll view when it is bouncing
   void attachTrimToScroll() {
+    print('attachTrimToScroll');
     if (_scrollController.position.outOfRange == false) {
+      print('_scrollController.position.outOfRange == false');
       // the last scroll position is ommited (when outOfRange == false)
       // because of that the last rect position after bouncing is inaccurate
       // it causes that minTrim 0.0 and maxTrim 1.0 are never reach
       // adding to the rect the difference between current scroll position and the last one fixes it
-      if (_scrollController.offset == 0.0) {
+      print('_scrollController.position.maxScrollExtent =>${_scrollController.position.maxScrollExtent}');
+      print('scrollController.offset =>${_scrollController.offset}');
+      print('_lastScrollPixels =>${_lastScrollPixels}');
+      print('_rect.left =>${_rect.left}');
+/*      if (_scrollController.offset == 0.0) {
         _changeTrimRect(
           left: _rect.left - _lastScrollPixels.abs(),
           updateTrim: false,
@@ -214,7 +220,7 @@ class _TrimSliderState extends State<TrimSlider>
               _rect.left + (_lastScrollPixels.abs() - _scrollController.offset),
           updateTrim: false,
         );
-      }
+      }*/
       _updateControllerTrim();
       _preSynchLeft = null;
       _preSynchRight = null;
@@ -341,7 +347,6 @@ class _TrimSliderState extends State<TrimSlider>
   void _onHorizontalDragUpdate(DragUpdateDetails details) {
     final Offset delta = details.delta;
     final posLeft = _rect.topLeft + delta;
-
     switch (_boundary) {
       case _TrimBoundaries.left:
         final clampLeft = posLeft.dx.clamp(_horizontalMargin, _rect.right);
@@ -360,8 +365,16 @@ class _TrimSliderState extends State<TrimSlider>
         break;
       case _TrimBoundaries.inside:
         if (_isExtendTrim) {
+          double newPosition = _scrollController.offset - delta.dx;
+          if (newPosition > _scrollController.position.maxScrollExtent) {
+            newPosition = _scrollController.position.maxScrollExtent;
+          }
+          if (newPosition < _scrollController.position.minScrollExtent) {
+            newPosition = _scrollController.position.minScrollExtent;
+          }
           _scrollController.position.moveTo(
-            _scrollController.offset - delta.dx,
+            newPosition,
+            // _scrollController.offset - delta.dx,
             clamp: false,
           );
         } else {
@@ -632,6 +645,8 @@ class _TrimSliderState extends State<TrimSlider>
                 builder: (_, __) {
                   if (widget.controller.trimStyle.leftEdge != null ||
                       widget.controller.trimStyle.rightEdge != null) {
+                    final marginRight = contrainst.maxWidth - _rect.right - 6;
+                    final marginLeft = _rect.left - 6;
                     return SizedBox.fromSize(
                       size: Size.fromHeight(widget.height),
                       child: Stack(
@@ -649,23 +664,24 @@ class _TrimSliderState extends State<TrimSlider>
                               ),
                             ),
                           ),
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: Container(
-                              margin: EdgeInsets.only(left: _rect.left - 6),
-                              child: widget.controller.trimStyle.leftEdge ??
-                                  widget.controller.trimStyle.rightEdge,
+                          if (marginLeft > 0)
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: Container(
+                                margin: EdgeInsets.only(left: _rect.left - 6),
+                                child: widget.controller.trimStyle.leftEdge ??
+                                    widget.controller.trimStyle.rightEdge,
+                              ),
                             ),
-                          ),
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: Container(
-                              margin: EdgeInsets.only(
-                                  right: contrainst.maxWidth - _rect.right - 6),
-                              child: widget.controller.trimStyle.rightEdge ??
-                                  widget.controller.trimStyle.leftEdge!,
-                            ),
-                          )
+                          if (marginRight > 0)
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: Container(
+                                margin: EdgeInsets.only(right: marginRight),
+                                child: widget.controller.trimStyle.rightEdge ??
+                                    widget.controller.trimStyle.leftEdge!,
+                              ),
+                            )
                         ],
                       ),
                     );
