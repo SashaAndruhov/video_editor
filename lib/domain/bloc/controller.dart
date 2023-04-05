@@ -1,14 +1,10 @@
 import 'dart:io';
-import 'package:ffmpeg_kit_flutter/ffmpeg_kit.dart';
-import 'package:ffmpeg_kit_flutter/ffmpeg_kit_config.dart';
-import 'package:ffmpeg_kit_flutter/ffprobe_kit.dart';
-import 'package:ffmpeg_kit_flutter/return_code.dart';
-import 'package:ffmpeg_kit_flutter/statistics.dart';
-// import 'package:ffmpeg_kit_flutter_min_gpl/ffmpeg_kit.dart';
-// import 'package:ffmpeg_kit_flutter_min_gpl/ffmpeg_kit_config.dart';
-// import 'package:ffmpeg_kit_flutter_min_gpl/ffprobe_kit.dart';
-// import 'package:ffmpeg_kit_flutter_min_gpl/return_code.dart';
-// import 'package:ffmpeg_kit_flutter_min_gpl/statistics.dart';
+
+import 'package:ffmpeg_kit_flutter_min_gpl/ffmpeg_kit.dart';
+import 'package:ffmpeg_kit_flutter_min_gpl/ffmpeg_kit_config.dart';
+import 'package:ffmpeg_kit_flutter_min_gpl/ffprobe_kit.dart';
+import 'package:ffmpeg_kit_flutter_min_gpl/return_code.dart';
+import 'package:ffmpeg_kit_flutter_min_gpl/statistics.dart';
 import 'package:path/path.dart' as path;
 import 'package:flutter/material.dart';
 import 'package:video_editor/domain/entities/file_format.dart';
@@ -137,7 +133,9 @@ class VideoEditorController extends ChangeNotifier {
 
   /// Get the [VideoPlayerController.value.size]
   Size get videoDimension => _video.value.size;
+
   double get videoWidth => videoDimension.width;
+
   double get videoHeight => videoDimension.height;
 
   /// The [minTrim] param is the minimum position of the trimmed area on the slider
@@ -183,6 +181,7 @@ class VideoEditorController extends ChangeNotifier {
 
   /// The [preferredCropAspectRatio] param is the selected aspect ratio (9:16, 3:4, 1:1, ...)
   double? get preferredCropAspectRatio => _preferredCropAspectRatio;
+
   set preferredCropAspectRatio(double? value) {
     if (preferredCropAspectRatio == value) return;
     _preferredCropAspectRatio = value;
@@ -371,6 +370,7 @@ class VideoEditorController extends ChangeNotifier {
   ///
   /// `true` if the trimming values are curently getting updated
   bool get isTrimming => _isTrimming;
+
   set isTrimming(bool value) {
     _isTrimming = value;
     if (!value) {
@@ -587,6 +587,73 @@ class VideoEditorController extends ChangeNotifier {
     final String execute =
         // ignore: unnecessary_string_escapes
         " -i \'$videoPath\' ${customInstruction ?? ""} $filter ${_getPreset(preset)} $_trimCmd -y \"$outputPath\"";
+
+    debugPrint('VideoEditor - run export video command : [$execute]');
+
+    // PROGRESS CALLBACKS
+    FFmpegKit.executeAsync(
+      execute,
+      (session) async {
+        final state =
+            FFmpegKitConfig.sessionStateToString(await session.getState());
+        final code = await session.getReturnCode();
+
+        if (ReturnCode.isSuccess(code)) {
+          onCompleted(File(outputPath));
+        } else {
+          if (onError != null) {
+            onError(
+              Exception(
+                  'FFmpeg process exited with state $state and return code $code.\n${await session.getOutput()}'),
+              StackTrace.current,
+            );
+          }
+          return;
+        }
+      },
+      null,
+      onProgress != null
+          ? (stats) {
+              // Progress value of encoded video
+              double progressValue =
+                  stats.getTime() / trimmedDuration.inMilliseconds;
+              onProgress(stats, progressValue.clamp(0.0, 1.0));
+            }
+          : null,
+    );
+  }
+
+  /// Trim and export the video using this trim parameters and return a `File`.
+  ///
+  /// The [onCompleted] param must be set to return the exported [File] video.
+  ///
+  /// The [onError] function provides the [Exception] and [StackTrace] that causes the exportation error.
+  ///
+  /// If the [name] is `null`, then it uses this video filename.
+  ///
+  /// If the [outDir] is `null`, then it uses `TemporaryDirectory`.
+  ///
+  /// The [onProgress] is called while the video is exporting.
+  /// This argument is usually used to update the export progress percentage.
+  /// This function return [Statistics] from FFmpeg session and the [double] progress value between 0.0 and 1.0.
+  Future<void> trimAndExportVideo({
+    required void Function(File file) onCompleted,
+    void Function(Object, StackTrace)? onError,
+    String? name,
+    String? outDir,
+    VideoExportFormat format = VideoExportFormat.mp4,
+    void Function(Statistics, double)? onProgress,
+  }) async {
+    final String videoPath = file.path;
+    final String outputPath = await _getOutputPath(
+      filePath: videoPath,
+      name: name,
+      outputDirectory: outDir,
+      format: format,
+    );
+    final String execute =
+        // ignore: unnecessary_string_escapes
+        "-ss $_trimStart -i \'$videoPath\' -to $_trimEnd -c copy \"$outputPath\"";
 
     debugPrint('VideoEditor - run export video command : [$execute]');
 
