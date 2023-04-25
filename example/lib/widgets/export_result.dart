@@ -1,10 +1,10 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:cached_video_player/cached_video_player.dart';
 import 'package:flutter/material.dart';
 import 'package:fraction/fraction.dart';
 import 'package:path/path.dart' as path;
-import 'package:video_player/video_player.dart';
 
 Future<void> _getImageDimension(File file,
     {required Function(Size) onResult}) async {
@@ -25,7 +25,7 @@ class VideoResultPopup extends StatefulWidget {
 }
 
 class _VideoResultPopupState extends State<VideoResultPopup> {
-  VideoPlayerController? _controller;
+  CachedVideoPlayerController? _controller;
   FileImage? _fileImage;
   Size _fileDimension = Size.zero;
   late final bool _isGif =
@@ -41,7 +41,7 @@ class _VideoResultPopupState extends State<VideoResultPopup> {
         onResult: (d) => setState(() => _fileDimension = d),
       );
     } else {
-      _controller = VideoPlayerController.file(widget.video);
+      _controller = CachedVideoPlayerController.file(widget.video);
       _controller?.initialize().then((_) {
         _fileDimension = _controller?.value.size ?? Size.zero;
         setState(() {});
@@ -76,7 +76,7 @@ class _VideoResultPopupState extends State<VideoResultPopup> {
                   ? 1
                   : _fileDimension.aspectRatio,
               child:
-                  _isGif ? Image.file(widget.video) : VideoPlayer(_controller!),
+                  _isGif ? Image.file(widget.video) : CachedVideoPlayer(_controller!),
             ),
             Positioned(
               bottom: 0,
