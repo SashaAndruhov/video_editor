@@ -41,10 +41,11 @@ class _ThumbnailSliderState extends State<ThumbnailSlider> {
   late Size _maxLayout = _calculateMaxLayout();
 
   /// The quantity of thumbnails to generate
+  // int _thumbnailsCount = 0;
   int _thumbnailsCount = 8;
   late int _neededThumbnails = _thumbnailsCount;
 
-  late Stream<List<Uint8List>> _stream = (() => _generateThumbnails())();
+  Stream<List<Uint8List>>? _stream;
 
   @override
   void initState() {
@@ -106,7 +107,9 @@ class _ThumbnailSliderState extends State<ThumbnailSlider> {
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (_, box) {
       _sliderWidth = box.maxWidth;
-
+      if(_stream==null){
+        WidgetsBinding.instance.addPostFrameCallback((_) => _scaleRect());
+      }
       return StreamBuilder<List<Uint8List>>(
         stream: _stream,
         builder: (_, snapshot) {
@@ -117,20 +120,18 @@ class _ThumbnailSliderState extends State<ThumbnailSlider> {
                   padding: EdgeInsets.zero,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: _neededThumbnails,
-                  itemBuilder: (_, i) => ValueListenableBuilder<TransformData>(
+                  itemBuilder: (_, index) => ValueListenableBuilder<TransformData>(
                     valueListenable: _transform,
                     builder: (_, transform, __) {
-                      final index =
-                          getBestIndex(_neededThumbnails, data!.length, i);
-
                       return Stack(
                         children: [
+                          if(index>=data!.length)
                           _buildSingleThumbnail(
-                            data[0],
+                            data![0],
                             transform,
                             isPlaceholder: true,
                           ),
-                          if (index < data.length)
+                          if (index < data!.length)
                             _buildSingleThumbnail(
                               data[index],
                               transform,
@@ -154,7 +155,7 @@ class _ThumbnailSliderState extends State<ThumbnailSlider> {
   }) {
     return ConstrainedBox(
       constraints: BoxConstraints.tight(_maxLayout),
-      child: CropTransform(
+      child: isPlaceholder?Container(color: Colors.black,):CropTransform(
         transform: transform,
         child: ImageViewer(
           controller: widget.controller,

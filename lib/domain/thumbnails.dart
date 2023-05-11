@@ -9,6 +9,7 @@ Stream<List<Uint8List>> generateTrimThumbnails(
   VideoEditorController controller, {
   required int quantity,
   int quality = 10,
+      Size? size,
 }) async* {
   final String path = controller.file.path;
   final double eachPart = controller.videoDuration.inMilliseconds / quantity;
@@ -21,15 +22,16 @@ Stream<List<Uint8List>> generateTrimThumbnails(
         video: path,
         timeMs: (eachPart * i).toInt(),
         quality: quality,
+        maxHeight: (size?.height??0).toInt(),
+        maxWidth: (size?.width??0).toInt(),
       );
       if (bytes != null) {
         byteList.add(bytes);
+        yield byteList;
       }
     } catch (e) {
       debugPrint(e.toString());
     }
-
-    yield byteList;
   }
 }
 
