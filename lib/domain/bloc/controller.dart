@@ -653,7 +653,7 @@ class VideoEditorController extends ChangeNotifier {
     );
     final String execute =
         // ignore: unnecessary_string_escapes
-        "-ss $_trimStart -i \'$videoPath\' -to $_trimEnd -c copy \"$outputPath\"";
+        "-ss $_trimStart -i \'$videoPath\' -to $_trimEnd -c copy -copyts -avoid_negative_ts 1 \"$outputPath\"";
 
     debugPrint('VideoEditor - run export video command : [$execute]');
 
