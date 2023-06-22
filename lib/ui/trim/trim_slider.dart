@@ -668,7 +668,8 @@ class _TrimSliderState extends State<TrimSlider>
                             Align(
                               alignment: Alignment.centerLeft,
                               child: Container(
-                                margin: EdgeInsets.only(left: _rect.left - 6),
+                                // padding: EdgeInsets.symmetric(horizontal: _rect.left - 6),
+                                padding: EdgeInsets.only(left: _rect.left - 6, right: 20),
                                 child: widget.controller.trimStyle.leftEdge ??
                                     widget.controller.trimStyle.rightEdge,
                               ),
@@ -677,7 +678,8 @@ class _TrimSliderState extends State<TrimSlider>
                             Align(
                               alignment: Alignment.centerRight,
                               child: Container(
-                                margin: EdgeInsets.only(right: marginRight),
+                                // padding: EdgeInsets.symmetric(horizontal: marginRight),
+                                padding: EdgeInsets.only(right: marginRight, left: 20),
                                 child: widget.controller.trimStyle.rightEdge ??
                                     widget.controller.trimStyle.leftEdge!,
                               ),
